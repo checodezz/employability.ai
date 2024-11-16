@@ -105,7 +105,9 @@ const loginUser = async (req, res, userType) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     // Find user (Candidate or Company)
@@ -114,8 +116,10 @@ const loginUser = async (req, res, userType) => {
         ? await Candidate.findOne({ email: email.trim().toLowerCase() })
         : await Company.findOne({ email: email.trim().toLowerCase() });
 
+    console.log(user);
+
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "User Doesn't exist with this credentials." });
     }
 
     // Debug Logs

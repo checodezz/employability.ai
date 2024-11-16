@@ -51,6 +51,7 @@ export const loginCandidate = createAsyncThunk(
         `${API_URL}/login/candidate`,
         credentials
       );
+      console.log(response.data)
       return response.data; // Expected { token, message }
     } catch (error) {
       console.log(error)
