@@ -1,19 +1,43 @@
-import express from "express"
+import express from "express";
+import axios from "axios";
+import { auth } from "express-oauth2-jwt-bearer";
+
 const router = express.Router();
-// import authController from "../controllers/authController"  
 
-import authController from "../controllers/authController.js"
+const jwtCheck = auth({
+  audience: "this is a unique identifier",
+  issuerBaseURL: "https://dev-46ouvvvpqt7o5ovk.us.auth0.com/",
+  tokenSigningAlg: "RS256",
+});
 
-// Candidate Routes
-router.post('/register/candidate', authController.registerCandidate);
-router.post('/login/candidate', authController.loginCandidate);
+// Middleware to enforce JWT check
+router.use(jwtCheck);
 
-// Company Routes
-router.post('/register/company', authController.registerCompany);
-router.post('/login/company', authController.loginCompany);
+// Route to fetch user info
+router.get("/userinfo", async (req, res) => {
+  try {
+    const accessToken = req.headers.authorization.split(" ")[1]; // Extract Bearer token
 
-// Protected Route
-router.get('/protected', authController.protect, authController.protectedRoute);
+    const userInfoResponse = await axios.get(
+      "https://dev-46ouvvvpqt7o5ovk.us.auth0.com/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-// module.exports = router;
-export default router
+    res.status(200).json({
+      message: "User information retrieved successfully",
+      user: userInfoResponse.data,
+    });
+  } catch (error) {
+    console.error("Error fetching user info:", error.message);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to retrieve user information",
+    });
+  }
+});
+
+export default router;

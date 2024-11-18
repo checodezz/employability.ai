@@ -59,16 +59,5 @@ const employeeSchema = new mongoose.Schema(
   }
 );
 
-employeeSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-});
-
-employeeSchema.methods.validatePassword = async function (password) {
-  return bcrypt.compare(password, this.password);
-};
-
 const Employee = mongoose.model("Employee", employeeSchema);
 export default Employee;

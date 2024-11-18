@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+/* import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Candidate from "../models/candidate.model.js";
 import Company from "../models/company.model.js";
@@ -187,3 +187,6 @@ export default {
   protect,
   protectedRoute,
 };
+
+
+ */
