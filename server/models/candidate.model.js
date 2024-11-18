@@ -1,8 +1,4 @@
-// const mongoose = require('mongoose');
-// const bcrypt = require('bcryptjs');
-
 import mongoose from 'mongoose';
-import bcrypt from "bcryptjs"
 
 const candidateSchema = new mongoose.Schema({
   firstName: {
@@ -61,12 +57,7 @@ const candidateSchema = new mongoose.Schema({
   timestamps: true
 });
 
-candidateSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-});
+// Removed pre-save middleware for password hashing
 
 const Candidate = mongoose.model('Candidate', candidateSchema);
-export default Candidate
+export default Candidate;

@@ -19,13 +19,15 @@ import {
 const LoginSignupForm = () => {
   const [isSignUp, setIsSignUp] = useState(false); // Toggle between login and signup
   const [isCandidate, setIsCandidate] = useState(true); // Toggle between candidate and company
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false); // Toggle password visibility
   const [formData, setFormData] = useState({
-    firstName: "", // Added for candidate registration
-    lastName: "", // Added for candidate registration
+    firstName: "", // For candidate registration
+    lastName: "", // For candidate registration
     email: "",
     password: "",
-    phone: "", // Added for candidate registration
+    phone: "", // Shared field for both candidate and company
     companyName: "", // For company registration
+    companyCode: "", // Required for company registration
   });
   const { status, error } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -44,6 +46,7 @@ const LoginSignupForm = () => {
       password: "",
       phone: "",
       companyName: "",
+      companyCode: "",
     });
   };
 
@@ -56,14 +59,19 @@ const LoginSignupForm = () => {
       password: "",
       phone: "",
       companyName: "",
+      companyCode: "",
     });
+  };
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible((prev) => !prev);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validation: Ensure all required fields are filled for candidate registration
     if (isSignUp && isCandidate) {
+      // Validation: Ensure all required fields for candidate
       if (
         !formData.firstName ||
         !formData.lastName ||
@@ -71,7 +79,19 @@ const LoginSignupForm = () => {
         !formData.password ||
         !formData.phone
       ) {
-        alert("Please fill in all required fields");
+        alert("Please fill in all required fields for candidate registration");
+        return;
+      }
+    } else if (isSignUp && !isCandidate) {
+      // Validation: Ensure all required fields for company
+      if (
+        !formData.companyName ||
+        !formData.companyCode ||
+        !formData.email ||
+        !formData.password ||
+        !formData.phone
+      ) {
+        alert("Please fill in all required fields for company registration");
         return;
       }
     }
@@ -101,7 +121,7 @@ const LoginSignupForm = () => {
             password: formData.password,
             phone: formData.phone,
             companyName: formData.companyName,
-            companyCode: "DEFAULT123",
+            companyCode: formData.companyCode,
           })
         );
       }
@@ -179,19 +199,47 @@ const LoginSignupForm = () => {
             )}
 
             {isSignUp && !isCandidate && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company Name
-                </label>
-                <Input
-                  name="companyName"
-                  type="text"
-                  placeholder="Enter your company name"
-                  value={formData.companyName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company Name
+                  </label>
+                  <Input
+                    name="companyName"
+                    type="text"
+                    placeholder="Enter your company name"
+                    value={formData.companyName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company Code
+                  </label>
+                  <Input
+                    name="companyCode"
+                    type="text"
+                    placeholder="Enter your company code"
+                    value={formData.companyCode}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
+                  <Input
+                    name="phone"
+                    type="text"
+                    placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </>
             )}
 
             <div className="mb-4">
@@ -207,18 +255,27 @@ const LoginSignupForm = () => {
                 required
               />
             </div>
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <Input
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              />
+              <div className="relative">
+                <Input
+                  name="password"
+                  type={isPasswordVisible ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {isPasswordVisible ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
             {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <Button

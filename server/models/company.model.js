@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from "bcryptjs"
 
 const companySchema = new mongoose.Schema({
   companyName: {
@@ -48,16 +47,8 @@ const companySchema = new mongoose.Schema({
   timestamps: true
 });
 
-companySchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-});
-
-companySchema.methods.validatePassword = async function(password) {
-  return bcrypt.compare(password, this.password);
-};
+// Removed pre-save middleware for password hashing
+// Removed validatePassword method
 
 const Company = mongoose.model('Company', companySchema);
-export default Company
+export default Company;

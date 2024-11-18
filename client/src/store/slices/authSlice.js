@@ -14,7 +14,7 @@ export const registerCandidate = createAsyncThunk(
         `${API_URL}/register/candidate`,
         candidateData
       );
-      console.log(response.data)
+      console.log(response.data);
       return response.data; // Expected { token, message }
     } catch (error) {
       return rejectWithValue(
@@ -33,6 +33,7 @@ export const registerCompany = createAsyncThunk(
         `${API_URL}/register/company`,
         companyData
       );
+      console.log(response.data);
       return response.data; // Expected { token, message }
     } catch (error) {
       return rejectWithValue(
@@ -51,10 +52,10 @@ export const loginCandidate = createAsyncThunk(
         `${API_URL}/login/candidate`,
         credentials
       );
-      console.log(response.data)
+      console.log(response.data);
       return response.data; // Expected { token, message }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return rejectWithValue(
         error.response?.data?.message || "Candidate login failed"
       );
@@ -71,6 +72,7 @@ export const loginCompany = createAsyncThunk(
         `${API_URL}/login/company`,
         credentials
       );
+      console.log(response.data);
       return response.data; // Expected { token, message }
     } catch (error) {
       return rejectWithValue(
