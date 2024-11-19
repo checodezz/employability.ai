@@ -1,5 +1,6 @@
-import { useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../store/slices/authSlice"; // Adjust path based on your Redux slice location
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,61 +9,52 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import axios from "axios";
 
 const LoginSignupForm = () => {
-  const {
-    loginWithRedirect,
-    logout,
-    user,
-    isAuthenticated,
-    isLoading,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const dispatch = useDispatch();
+  const authState = useSelector((state) => state.auth); // Access authentication state from Redux
 
-  // Function to call the protected API
-  const callProtectedAPI = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      console.log(token);
-      const response = await axios.get("http://localhost:3000/api/userinfo", {
-        headers: {
-          Authorization: `Bearer ${token}`, // Attach the token
-        },
-      });
-      console.log("Protected API Response:", response.data);
-    } catch (error) {
-      console.error("Error calling protected API:", error.message);
+  const [isSignup, setIsSignup] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); // Signup-specific field
+  const [role, setRole] = useState("candidate"); // Default to candidate
+  const [resume, setResume] = useState(""); // Candidate-specific field
+  const [companyName, setCompanyName] = useState(""); // Employer-specific field
+  const [companyWebsite, setCompanyWebsite] = useState(""); // Employer-specific field
+
+  // Function for handling custom signup
+  const handleCustomSignup = (e) => {
+    e.preventDefault();
+
+    const signupData = {
+      email,
+      password,
+      name,
+      role,
+    };
+
+    // Add role-specific fields dynamically
+    if (role === "candidate") {
+      signupData.resume = resume;
+    } else if (role === "employer" || role === "recruiter") {
+      signupData.company = {
+        name: companyName,
+        website: companyWebsite,
+      };
     }
+    dispatch(registerUser(signupData)); // Dispatch the unified registerUser action
   };
 
-  // Trigger API call after successful login or signup
-  useEffect(() => {
-    if (isAuthenticated) {
-      callProtectedAPI();
-    }
-  }, [isAuthenticated]);
-
-  const handleLogin = async () => {
-    try {
-      await loginWithRedirect();
-    } catch (error) {
-      console.error("Redirect login failed:", error);
-    }
-  };
-
-  const handleLogout = () => {
-    logout({ returnTo: window.location.origin });
-  };
-
-  if (isLoading) {
+  if (authState.status === "loading") {
     return (
       <div
         className="flex justify-center items-center min-h-screen bg-gray-100"
         aria-busy="true"
-        aria-label="Loading authentication state"
       >
-        <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
+        <h2 className="text-xl font-semibold text-gray-700">
+          Signing you up...
+        </h2>
       </div>
     );
   }
@@ -79,45 +71,150 @@ const LoginSignupForm = () => {
             id="page-title"
             className="text-center text-2xl font-bold text-gray-800"
           >
-            {isAuthenticated
-              ? "Welcome to Employability.ai"
-              : "Sign in to Employability.ai"}
+            {isSignup ? "Create an Account" : "Sign in to Employability.ai"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isAuthenticated ? (
+          {authState.user ? (
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-800">
-                Hello, {user?.name || user?.email}
+                Hello, {authState.user.name || authState.user.email}
               </h2>
-              <p className="text-gray-600 mb-4">Email: {user?.email}</p>
-              <Button
-                onClick={handleLogout}
-                className="w-full"
-                variant="destructive"
-              >
-                Logout
-              </Button>
+              <p className="text-gray-600 mb-4">
+                Email: {authState.user.email}
+              </p>
             </div>
           ) : (
             <div>
-              <p className="text-gray-700 mb-4 text-center">
-                Use your account to sign in and access your dashboard.
-              </p>
-              <Button
-                onClick={handleLogin}
-                className="w-full"
-                variant="default"
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  isSignup
+                    ? handleCustomSignup(e)
+                    : console.log("Handle login");
+                }}
               >
-                Login
-              </Button>
+                {authState.error && (
+                  <p className="text-red-500 text-center mb-4">
+                    {authState.error}
+                  </p>
+                )}
+
+                {/* Common Fields */}
+                <div className="mb-4">
+                  <label className="block text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full border border-gray-300 rounded p-2"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full border border-gray-300 rounded p-2"
+                    required
+                  />
+                </div>
+
+                {/* Signup-Specific Fields */}
+                {isSignup && (
+                  <>
+                    <div className="mb-4">
+                      <label className="block text-gray-700">Name</label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full border border-gray-300 rounded p-2"
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-700">I am a</label>
+                      <select
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        className="w-full border border-gray-300 rounded p-2"
+                      >
+                        <option value="candidate">Candidate</option>
+                        <option value="employer">Employer</option>
+                        <option value="recruiter">Recruiter</option>
+                      </select>
+                    </div>
+
+                    {role === "candidate" && (
+                      <div className="mb-4">
+                        <label className="block text-gray-700">
+                          Resume (URL)
+                        </label>
+                        <input
+                          type="url"
+                          value={resume}
+                          onChange={(e) => setResume(e.target.value)}
+                          className="w-full border border-gray-300 rounded p-2"
+                          placeholder="e.g., https://example.com/resume.pdf"
+                        />
+                      </div>
+                    )}
+
+                    {(role === "employer" || role === "recruiter") && (
+                      <>
+                        <div className="mb-4">
+                          <label className="block text-gray-700">
+                            Company Name
+                          </label>
+                          <input
+                            type="text"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                            className="w-full border border-gray-300 rounded p-2"
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <label className="block text-gray-700">
+                            Company Website
+                          </label>
+                          <input
+                            type="url"
+                            value={companyWebsite}
+                            onChange={(e) => setCompanyWebsite(e.target.value)}
+                            className="w-full border border-gray-300 rounded p-2"
+                            placeholder="e.g., https://example.com"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+
+                <Button type="submit" className="w-full" variant="default">
+                  {isSignup ? "Signup" : "Login"}
+                </Button>
+              </form>
+              <p className="text-center text-gray-500 mt-4">
+                {isSignup
+                  ? "Already have an account?"
+                  : "Don't have an account?"}{" "}
+                <button
+                  onClick={() => setIsSignup(!isSignup)}
+                  className="text-blue-600 underline"
+                >
+                  {isSignup ? "Login here" : "Sign up here"}
+                </button>
+              </p>
             </div>
           )}
         </CardContent>
-        {!isAuthenticated && (
+        {!authState.user && (
           <CardFooter className="text-center">
             <p className="text-sm text-gray-500">
-              By logging in, you agree to our{" "}
+              By signing up or logging in, you agree to our{" "}
               <a href="/terms" className="text-blue-600 underline">
                 Terms of Service
               </a>{" "}
