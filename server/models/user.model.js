@@ -1,53 +1,58 @@
+// server/models/user.model.js
+
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String, // For storing hashed passwords if using custom login
-  },
-  auth0Id: {
-    type: String, // Optional: for Auth0 users
-  },
-  role: {
-    type: String,
-    enum: ["candidate", "employer", "recruiter"],
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  // Fields for Candidates
-  resume: {
-    type: String, // URL to uploaded resume
-  },
-  appliedJobs: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Job",
+const userSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
     },
-  ],
-  // Fields for Employers/Recruiters
-  company: {
+    password: {
+      type: String, // Only for manual signup
+    },
     name: {
       type: String,
+      required: true,
     },
-    website: {
+    role: {
       type: String,
+      enum: ["candidate", "employer", "recruiter"],
+      default: "candidate",
     },
+    resume: {
+      type: String, // Candidate-specific
+    },
+    company: {
+      name: String, // Employer/Recruiter-specific
+      website: String,
+    },
+    googleId: {
+      type: String, // Google OAuth
+      unique: true,
+      sparse: true,
+    },
+    githubId: {
+      type: String, // GitHub OAuth
+      unique: true,
+      sparse: true,
+    },
+    linkedinId: {
+      type: String, // LinkedIn OAuth
+      unique: true,
+      sparse: true,
+    },
+    phoneNumber: {
+      type: String,
+      unique: true,
+    },
+    isPhoneVerified: { type: Boolean, default: false },
   },
-  postedJobs: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Job",
-    },
-  ],
-});
+  { timestamps: true }
+);
 
-// Export the model
 const User = mongoose.model("User", userSchema);
+
 export default User;
