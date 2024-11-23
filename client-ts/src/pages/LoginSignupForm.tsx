@@ -1,6 +1,13 @@
-import { useState } from "react";
+// src/components/LoginSignupForm.tsx
+
+import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../store/slices/authSlice"; // Adjust path based on your Redux slice location
+import {
+  registerUser,
+  loginUser,
+  fetchUser,
+  logoutUser,
+} from "../store/slices/authSlice";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,32 +16,57 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
+import { RootState } from "../store"; // Adjust to your store setup
 
-const LoginSignupForm = () => {
+interface SignupData {
+  email: string;
+  password: string;
+  name: string;
+  role: string;
+  resume?: string;
+  company?: {
+    name: string;
+    website: string;
+  };
+}
+
+const LoginSignupForm: React.FC = () => {
   const dispatch = useDispatch();
-  const authState = useSelector((state) => state.auth); // Access authentication state from Redux
+  const navigate = useNavigate();
+  const authState = useSelector((state: RootState) => state.auth);
 
-  const [isSignup, setIsSignup] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState(""); // Signup-specific field
-  const [role, setRole] = useState("candidate"); // Default to candidate
-  const [resume, setResume] = useState(""); // Candidate-specific field
-  const [companyName, setCompanyName] = useState(""); // Employer-specific field
-  const [companyWebsite, setCompanyWebsite] = useState(""); // Employer-specific field
+  const [isSignup, setIsSignup] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [role, setRole] = useState<string>("candidate");
+  const [resume, setResume] = useState<string>("");
+  const [companyName, setCompanyName] = useState<string>("");
+  const [companyWebsite, setCompanyWebsite] = useState<string>("");
 
-  // Function for handling custom signup
-  const handleCustomSignup = (e) => {
+  useEffect(() => {
+    // Fetch the authenticated user's data when the component mounts
+    dispatch(fetchUser());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (authState.isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [authState.isAuthenticated, navigate]);
+
+  const handleCustomSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const signupData = {
+    const signupData: SignupData = {
       email,
       password,
       name,
       role,
     };
 
-    // Add role-specific fields dynamically
     if (role === "candidate") {
       signupData.resume = resume;
     } else if (role === "employer" || role === "recruiter") {
@@ -43,7 +75,57 @@ const LoginSignupForm = () => {
         website: companyWebsite,
       };
     }
-    dispatch(registerUser(signupData)); // Dispatch the unified registerUser action
+
+    try {
+      // Trigger signup API call
+      await dispatch(registerUser(signupData)).unwrap();
+
+      // Redirect to OTP verification after signup
+      navigate("/verify-phone");
+    } catch (error) {
+      console.error("Signup failed:", error);
+    }
+  };
+
+  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const loginData = {
+      email,
+      password,
+    };
+    dispatch(loginUser(loginData));
+  };
+
+  const handleOAuthLogin = async (provider: string) => {
+    const providerRoutes: { [key: string]: string } = {
+      google: "auth/google",
+      github: "auth/github",
+      linkedin: "auth/linkedin",
+    };
+
+    const backendUrl = "http://localhost:3000"; // Backend URL
+    const redirectUrl = `${backendUrl}/api/${providerRoutes[provider]}`;
+
+    // Redirect to OAuth route
+    window.location.href = redirectUrl;
+
+    // After OAuth login, check if the user needs phone verification
+    try {
+      const response = await fetch(`${backendUrl}/api/auth/me`, {
+        credentials: "include", // Ensure cookies are included
+      });
+
+      const user = await response.json();
+
+      if (!user.isPhoneVerified) {
+        navigate("/verify-phone"); // Redirect to phone verification
+      } else {
+        navigate("/dashboard"); // Redirect to dashboard
+      }
+    } catch (error) {
+      console.error("OAuth login failed:", error);
+    }
   };
 
   if (authState.status === "loading") {
@@ -53,7 +135,7 @@ const LoginSignupForm = () => {
         aria-busy="true"
       >
         <h2 className="text-xl font-semibold text-gray-700">
-          Signing you up...
+          {isSignup ? "Signing you up..." : "Signing you in..."}
         </h2>
       </div>
     );
@@ -83,17 +165,17 @@ const LoginSignupForm = () => {
               <p className="text-gray-600 mb-4">
                 Email: {authState.user.email}
               </p>
+              <Button
+                onClick={() => dispatch(logoutUser())}
+                variant="outline"
+                className="mt-4"
+              >
+                Logout
+              </Button>
             </div>
           ) : (
             <div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  isSignup
-                    ? handleCustomSignup(e)
-                    : console.log("Handle login");
-                }}
-              >
+              <form onSubmit={isSignup ? handleCustomSignup : handleLogin}>
                 {authState.error && (
                   <p className="text-red-500 text-center mb-4">
                     {authState.error}
@@ -197,6 +279,35 @@ const LoginSignupForm = () => {
                   {isSignup ? "Signup" : "Login"}
                 </Button>
               </form>
+
+              {/* OAuth Buttons */}
+              <div className="mt-6 flex flex-col items-center">
+                <span className="text-gray-500 mb-2">Or continue with</span>
+                <div className="flex space-x-4">
+                  <Button
+                    onClick={() => handleOAuthLogin("google")}
+                    variant="outline"
+                    className="flex items-center"
+                  >
+                    <FaGoogle className="mr-2" /> Google
+                  </Button>
+                  <Button
+                    onClick={() => handleOAuthLogin("linkedin")}
+                    variant="outline"
+                    className="flex items-center"
+                  >
+                    <FaLinkedin className="mr-2" /> LinkedIn
+                  </Button>
+                  <Button
+                    onClick={() => handleOAuthLogin("github")}
+                    variant="outline"
+                    className="flex items-center"
+                  >
+                    <FaGithub className="mr-2" /> GitHub
+                  </Button>
+                </div>
+              </div>
+
               <p className="text-center text-gray-500 mt-4">
                 {isSignup
                   ? "Already have an account?"
