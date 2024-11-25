@@ -8,19 +8,19 @@ export interface IUser extends Document {
   role: "candidate" | "employer" | "recruiter";
   resume?: string; // Candidate-specific
   company?: {
-    name?: string; // Employer/Recruiter-specific
+    name?: string;
     website?: string;
   };
-  googleId?: string; // Google OAuth
-  githubId?: string; // GitHub OAuth
-  linkedinId?: string; // LinkedIn OAuth
+  googleId?: string;
+  githubId?: string;
+  linkedinId?: string;
   phoneNumber?: string;
   isPhoneVerified: boolean;
+  isProfileCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Define the User schema
 const userSchema: Schema<IUser> = new Schema(
   {
     email: {
@@ -30,7 +30,7 @@ const userSchema: Schema<IUser> = new Schema(
       lowercase: true,
     },
     password: {
-      type: String, // Only for manual signup
+      type: String,
     },
     name: {
       type: String,
@@ -42,37 +42,38 @@ const userSchema: Schema<IUser> = new Schema(
       default: "candidate",
     },
     resume: {
-      type: String, // Candidate-specific
+      type: String,
     },
     company: {
-      name: { type: String }, // Employer/Recruiter-specific
+      name: { type: String },
       website: { type: String },
     },
     googleId: {
-      type: String, // Google OAuth
+      type: String,
       unique: true,
       sparse: true,
     },
     githubId: {
-      type: String, // GitHub OAuth
+      type: String,
       unique: true,
       sparse: true,
     },
     linkedinId: {
-      type: String, // LinkedIn OAuth
+      type: String,
       unique: true,
       sparse: true,
     },
     phoneNumber: {
       type: String,
-      unique: true,
+      // unique: true,
+      sparse: true,
     },
+    isProfileCompleted: { type: Boolean, default: false },
     isPhoneVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// Define the User model
 const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 
 export default User;
