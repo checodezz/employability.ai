@@ -1,3 +1,5 @@
+// routes/authRoutes.ts
+
 import express, { Request, Response, NextFunction, Router } from "express";
 import passport from "passport";
 import bcrypt from "bcryptjs";
@@ -113,5 +115,76 @@ router.post("/logout", (req: Request, res: Response) => {
     res.json({ message: "Logout successful." });
   });
 });
+
+/**
+ * OAuth Routes
+ */
+
+/**
+ * Google OAuth Routes
+ */
+
+// Initiate Google OAuth authentication
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+// Handle Google OAuth callback
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/login", // Redirect to login on failure
+    failureMessage: true, // Enable failure messages
+  }),
+  (req: Request, res: Response) => {
+    // Successful authentication, redirect to frontend dashboard
+    res.redirect("http://localhost:5173/dashboard"); // Update to your frontend dashboard route
+  }
+);
+
+/**
+ * GitHub OAuth Routes
+ */
+
+// Initiate GitHub OAuth authentication
+router.get(
+  "/auth/github",
+  passport.authenticate("github", { scope: ["user:email"] })
+);
+
+// Handle GitHub OAuth callback
+router.get(
+  "/auth/github/callback",
+  passport.authenticate("github", {
+    failureRedirect: "/login",
+    failureMessage: true,
+  }),
+  (req: Request, res: Response) => {
+    res.redirect("http://localhost:5173/dashboard");
+  }
+);
+
+/**
+ * LinkedIn OAuth Routes
+ */
+
+// Initiate LinkedIn OAuth authentication
+router.get(
+  "/auth/linkedin",
+  passport.authenticate("linkedin", { state: "true" })
+);
+
+// Handle LinkedIn OAuth callback
+router.get(
+  "/auth/linkedin/callback",
+  passport.authenticate("linkedin", {
+    failureRedirect: "/login",
+    failureMessage: true,
+  }),
+  (req: Request, res: Response) => {
+    res.redirect("http://localhost:5173/dashboard");
+  }
+);
 
 export default router;

@@ -113,12 +113,13 @@ passport.use(
 /**
  * GitHub OAuth Strategy
  */
+
 passport.use(
   new GitHubStrategy(
     {
       clientID: process.env.GITHUB_CLIENT_ID || "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-      callbackURL: "/api/auth/github/callback",
+      callbackURL: "http://localhost:3000/api/auth/github/callback",
       scope: ["user:email"],
     },
     async (
@@ -157,7 +158,6 @@ passport.use(
           email,
           role: "candidate",
         });
-
         await newUser.save();
         return done(null, newUser);
       } catch (error) {
@@ -170,6 +170,8 @@ passport.use(
 /**
  * LinkedIn OAuth Strategy
  */
+// config/passport.ts
+
 passport.use(
   new LinkedInStrategy(
     {
@@ -196,8 +198,15 @@ passport.use(
           });
         }
 
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ linkedinId: profile.id });
         if (user) {
+          return done(null, user);
+        }
+
+        user = await User.findOne({ email });
+        if (user) {
+          user.linkedinId = profile.id;
+          await user.save();
           return done(null, user);
         }
 
@@ -211,6 +220,7 @@ passport.use(
         await newUser.save();
         return done(null, newUser);
       } catch (error) {
+        console.error("LinkedIn OAuth Error:", error);
         return done(error, undefined);
       }
     }
