@@ -48,7 +48,7 @@ const LoginSignupForm: React.FC = () => {
 
   useEffect(() => {
     // Fetch the authenticated user's data when the component mounts
-    dispatch(fetchUser());
+    // dispatch(fetchUser());
   }, [dispatch]);
 
   useEffect(() => {

@@ -17,8 +17,6 @@ createRoot(rootElement).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        {" "}
-        {/* Use BrowserRouter */}
         <App />
       </BrowserRouter>
     </Provider>

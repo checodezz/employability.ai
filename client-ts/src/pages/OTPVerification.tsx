@@ -87,6 +87,11 @@ const OTPVerification: React.FC = () => {
     }
   };
 
+  // Skip verification and redirect to complete profile
+  const handleSkipForNow = () => {
+    navigate("/complete-profile");
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div id="recaptcha-container"></div> {/* Required for Recaptcha */}
@@ -150,6 +155,15 @@ const OTPVerification: React.FC = () => {
         {successMessage && (
           <p className="text-green-500 text-center mt-4">{successMessage}</p>
         )}
+
+        {/* Skip for Now Button */}
+        <Button
+          onClick={handleSkipForNow}
+          className="w-full mt-4"
+          variant="outline"
+        >
+          Skip for Now
+        </Button>
       </div>
     </div>
   );
