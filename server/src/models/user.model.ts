@@ -1,8 +1,27 @@
-// server/models/user.model.js
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-import mongoose from "mongoose";
+// Define an interface for the User document
+export interface IUser extends Document {
+  email: string;
+  password?: string; // Optional, for manual signup
+  name: string;
+  role: "candidate" | "employer" | "recruiter";
+  resume?: string; // Candidate-specific
+  company?: {
+    name?: string; // Employer/Recruiter-specific
+    website?: string;
+  };
+  googleId?: string; // Google OAuth
+  githubId?: string; // GitHub OAuth
+  linkedinId?: string; // LinkedIn OAuth
+  phoneNumber?: string;
+  isPhoneVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-const userSchema = new mongoose.Schema(
+// Define the User schema
+const userSchema: Schema<IUser> = new Schema(
   {
     email: {
       type: String,
@@ -26,8 +45,8 @@ const userSchema = new mongoose.Schema(
       type: String, // Candidate-specific
     },
     company: {
-      name: String, // Employer/Recruiter-specific
-      website: String,
+      name: { type: String }, // Employer/Recruiter-specific
+      website: { type: String },
     },
     googleId: {
       type: String, // Google OAuth
@@ -53,6 +72,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const User = mongoose.model("User", userSchema);
+// Define the User model
+const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 
 export default User;
