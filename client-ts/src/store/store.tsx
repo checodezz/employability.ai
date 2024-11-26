@@ -1,9 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authSlice from "./slices/authSlice";
-
+import resumeSlice from "./slices/resumeSlice";
 const store = configureStore({
   reducer: {
     auth: authSlice, // Add your reducers here
+    resume: resumeSlice,
   },
 });
 
