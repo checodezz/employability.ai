@@ -8,6 +8,7 @@ import connectDB from "./db/db";
 import authRoutes from "./routes/authRoutes";
 import "./config/passport"; // Import Passport configuration
 import otpRoutes from "./routes/otpRoutes";
+import uploadResumeRoutes from "./routes/uploadResume";
 
 config();
 
@@ -33,12 +34,12 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI || "", // Your MongoDB connection string
       collectionName: "sessions", // Optional, default is 'sessions'
-      ttl: 14 * 24 * 60 * 60, // 14 days (optional, default)
+      ttl: 1 * 24 * 60 * 60, // 14 days (optional, default)
     }),
     cookie: {
       maxAge: 1000 * 60 * 60 * 24, // 1 day
       httpOnly: true, // Prevents client-side JS from accessing the cookie
-      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+      secure: false, //process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: "lax", // Helps protect against CSRF attacks
     },
   })
@@ -48,6 +49,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/api", authRoutes);
+app.use("/api", uploadResumeRoutes);
 app.use("/api/otp", otpRoutes);
 
 app.get("/", (req: Request, res: Response) => {

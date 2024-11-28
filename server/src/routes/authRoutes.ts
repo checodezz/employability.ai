@@ -57,15 +57,23 @@ router.post(
 
       await newUser.save();
 
-      res.status(201).json({
-        user: {
-          id: newUser._id,
-          email: newUser.email,
-          name: newUser.name,
-          role: newUser.role,
-          isPhoneVerified: newUser.isPhoneVerified,
-        },
-        message: "Signup successful. Phone verification required.",
+      // Log the user in and create a session
+      req.login(newUser, (err) => {
+        if (err) {
+          console.error("Error during login:", err);
+          return res.status(500).json({ message: "Failed to create session" });
+        }
+
+        res.status(201).json({
+          user: {
+            id: newUser._id,
+            email: newUser.email,
+            name: newUser.name,
+            role: newUser.role,
+            isPhoneVerified: newUser.isPhoneVerified,
+          },
+          message: "Signup successful. Phone verification required.",
+        });
       });
     } catch (error) {
       console.error("Error during registration:", error);

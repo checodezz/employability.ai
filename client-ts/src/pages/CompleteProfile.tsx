@@ -3,14 +3,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-// import { uploadResume } from "@/store/resumeSlice"; // Assuming you have this action
-import { uploadResume } from "@/store/slices/resumeSlice";
+import { uploadResume } from "@/store/slices/resumeSlice"; // Assuming you have this action
 import { AppDispatch } from "@/store/store";
 
 const CompleteProfile: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
+  // Accessing user and resume data from Redux store
   const user = useSelector((state: RootState) => state.auth.user);
   const { uploading, error, parsedData } = useSelector(
     (state: RootState) => state.resume
@@ -19,8 +19,8 @@ const CompleteProfile: React.FC = () => {
   // Personal Information
   const [fullName, setFullName] = useState<string>(user?.name || "");
   const [email, setEmail] = useState<string>(user?.email || "");
-  const [phoneNumber, setPhoneNumber] = useState<string>("");
-  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>(user?.phone || "");
+  const [dateOfBirth, setDateOfBirth] = useState<string>(user?.dob || "");
   const [address, setAddress] = useState({
     street: "",
     city: "",
@@ -29,65 +29,60 @@ const CompleteProfile: React.FC = () => {
     country: "",
   });
 
-  // Professional Profiles
+  // Other fields (professional profiles, work experiences, etc.)
   const [linkedinProfile, setLinkedinProfile] = useState<string>("");
   const [portfolioWebsite, setPortfolioWebsite] = useState<string>("");
   const [githubProfile, setGithubProfile] = useState<string>("");
-
-  // Work Experience
   const [workExperiences, setWorkExperiences] = useState<Array<any>>([]);
-
-  // Education
   const [educations, setEducations] = useState<Array<any>>([]);
-
-  // Skills
   const [technicalSkills, setTechnicalSkills] = useState<string>("");
   const [softSkills, setSoftSkills] = useState<string>("");
-
-  // Projects
   const [projects, setProjects] = useState<Array<any>>([]);
-
-  // Additional Information
   const [languages, setLanguages] = useState<string>("");
   const [certifications, setCertifications] = useState<string>("");
   const [awards, setAwards] = useState<string>("");
-
-  // Resume File
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [skills, setSkills] = useState<string>("");
 
   // Update form fields when parsedData changes
   useEffect(() => {
     if (parsedData) {
-      setFullName(parsedData.fullName || fullName);
-      setPhoneNumber(parsedData.phoneNumber || phoneNumber);
+      setFullName(parsedData.name || fullName);
+      setPhoneNumber(parsedData.contact?.phone || phoneNumber);
       setAddress({
-        street: parsedData.address?.street || address.street,
-        city: parsedData.address?.city || address.city,
-        state: parsedData.address?.state || address.state,
-        postalCode: parsedData.address?.postalCode || address.postalCode,
-        country: parsedData.address?.country || address.country,
+        street: parsedData.contact?.address?.street || address.street,
+        city: parsedData.contact?.address?.city || address.city,
+        state: parsedData.contact?.address?.state || address.state,
+        postalCode:
+          parsedData.contact?.address?.postalCode || address.postalCode,
+        country: parsedData.contact?.address?.country || address.country,
       });
-      setLinkedinProfile(parsedData.linkedinProfile || linkedinProfile);
-      setWorkExperiences(parsedData.workExperiences || workExperiences);
-      setEducations(parsedData.educations || educations);
-      setTechnicalSkills(parsedData.technicalSkills || technicalSkills);
+      setLinkedinProfile(parsedData.contact?.linkedin || linkedinProfile);
+      setWorkExperiences(parsedData.experience || workExperiences);
+      setEducations(parsedData.education || educations);
+      setTechnicalSkills(parsedData.skills?.join(", ") || technicalSkills);
       setProjects(parsedData.projects || projects);
+      setEmail(parsedData.contact?.email || email);
     }
   }, [parsedData]);
 
+  useEffect(() => {
+    if (parsedData && parsedData.skills) {
+      setSkills(parsedData.skills.join(", "));
+    }
+  }, [parsedData]);
+
+  // Handle file change for resume upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-
-      // Dispatch the uploadResume action
-      dispatch(uploadResume({ file, userId: user?._id || "" }));
+      dispatch(uploadResume({ file, userId: user?.id || "" }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prepare profile data
     const profileData = {
       personalInformation: {
         fullName,
@@ -130,26 +125,35 @@ const CompleteProfile: React.FC = () => {
         throw new Error(data.error || "Failed to submit profile");
       }
 
-      // Handle successful submission
-      console.log("Profile data submitted:", data);
       navigate("/next-step");
     } catch (error) {
       console.error("Error submitting profile data:", error);
-      // Handle error (e.g., show a message to the user)
     }
   };
 
-  // Functions to handle dynamic sections (Work Experience, Education, Projects)
   const addWorkExperience = () => {
     setWorkExperiences([
       ...workExperiences,
       {
         jobTitle: "",
-        companyName: "",
+        company: "",
         location: "",
         startDate: "",
         endDate: "",
         responsibilities: "",
+      },
+    ]);
+  };
+
+  const addEducation = () => {
+    setEducations([
+      ...educations,
+      {
+        degree: "",
+        institution: "",
+        startDate: "",
+        endDate: "",
+        location: "",
       },
     ]);
   };
@@ -159,18 +163,42 @@ const CompleteProfile: React.FC = () => {
     field: string,
     value: string
   ) => {
-    const updatedExperiences = [...workExperiences];
-    updatedExperiences[index][field] = value;
-    setWorkExperiences(updatedExperiences);
+    setWorkExperiences((prevExperiences) => {
+      const updatedExperiences = [...prevExperiences];
+      updatedExperiences[index] = {
+        ...updatedExperiences[index],
+        [field]: value,
+      };
+      return updatedExperiences;
+    });
+  };
+
+  const updateEducation = (index: number, field: string, value: string) => {
+    setEducations((prevEducations) => {
+      const updatedEducations = [...prevEducations];
+      updatedEducations[index] = {
+        ...updatedEducations[index],
+        [field]: value,
+      };
+      return updatedEducations;
+    });
   };
 
   const removeWorkExperience = (index: number) => {
-    const updatedExperiences = [...workExperiences];
-    updatedExperiences.splice(index, 1);
-    setWorkExperiences(updatedExperiences);
+    setWorkExperiences((prevExperiences) => {
+      const updatedExperiences = [...prevExperiences];
+      updatedExperiences.splice(index, 1);
+      return updatedExperiences;
+    });
   };
 
-  // Similar functions for Education and Projects can be created
+  const removeEducation = (index: number) => {
+    setEducations((prevEducations) => {
+      const updatedEducations = [...prevEducations];
+      updatedEducations.splice(index, 1);
+      return updatedEducations;
+    });
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -193,11 +221,9 @@ const CompleteProfile: React.FC = () => {
             {uploading && <p className="text-blue-500 mt-2">Uploading...</p>}
             {error && <p className="text-red-500 mt-2">{error}</p>}
           </div>
-
           {/* Personal Information */}
           <section className="mb-6">
             <h3 className="text-xl font-semibold mb-4">Personal Information</h3>
-            {/* Full Name */}
             <div className="mb-4">
               <label className="block text-gray-700">Full Name</label>
               <input
@@ -208,17 +234,15 @@ const CompleteProfile: React.FC = () => {
                 required
               />
             </div>
-            {/* Email */}
             <div className="mb-4">
               <label className="block text-gray-700">Email</label>
               <input
                 type="email"
                 value={email}
-                disabled
-                className="w-full border border-gray-300 rounded p-2 bg-gray-100"
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded p-2"
               />
             </div>
-            {/* Phone Number */}
             <div className="mb-4">
               <label className="block text-gray-700">Phone Number</label>
               <input
@@ -226,11 +250,8 @@ const CompleteProfile: React.FC = () => {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="w-full border border-gray-300 rounded p-2"
-                placeholder="+1XXXXXXXXXX"
-                required
               />
             </div>
-            {/* Date of Birth */}
             <div className="mb-4">
               <label className="block text-gray-700">Date of Birth</label>
               <input
@@ -240,99 +261,7 @@ const CompleteProfile: React.FC = () => {
                 className="w-full border border-gray-300 rounded p-2"
               />
             </div>
-            {/* Address */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Address</label>
-              <input
-                type="text"
-                value={address.street}
-                onChange={(e) =>
-                  setAddress({ ...address, street: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded p-2 mb-2"
-                placeholder="Street Address"
-              />
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={address.city}
-                  onChange={(e) =>
-                    setAddress({ ...address, city: e.target.value })
-                  }
-                  className="w-1/3 border border-gray-300 rounded p-2"
-                  placeholder="City"
-                />
-                <input
-                  type="text"
-                  value={address.state}
-                  onChange={(e) =>
-                    setAddress({ ...address, state: e.target.value })
-                  }
-                  className="w-1/3 border border-gray-300 rounded p-2"
-                  placeholder="State"
-                />
-                <input
-                  type="text"
-                  value={address.postalCode}
-                  onChange={(e) =>
-                    setAddress({ ...address, postalCode: e.target.value })
-                  }
-                  className="w-1/3 border border-gray-300 rounded p-2"
-                  placeholder="Postal Code"
-                />
-              </div>
-              <input
-                type="text"
-                value={address.country}
-                onChange={(e) =>
-                  setAddress({ ...address, country: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded p-2 mt-2"
-                placeholder="Country"
-              />
-            </div>
           </section>
-
-          {/* Professional Profiles */}
-          <section className="mb-6">
-            <h3 className="text-xl font-semibold mb-4">
-              Professional Profiles
-            </h3>
-            {/* LinkedIn Profile */}
-            <div className="mb-4">
-              <label className="block text-gray-700">LinkedIn Profile</label>
-              <input
-                type="url"
-                value={linkedinProfile}
-                onChange={(e) => setLinkedinProfile(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="https://linkedin.com/in/your-profile"
-              />
-            </div>
-            {/* Portfolio Website */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Portfolio Website</label>
-              <input
-                type="url"
-                value={portfolioWebsite}
-                onChange={(e) => setPortfolioWebsite(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="https://your-website.com"
-              />
-            </div>
-            {/* GitHub Profile */}
-            <div className="mb-4">
-              <label className="block text-gray-700">GitHub Profile</label>
-              <input
-                type="url"
-                value={githubProfile}
-                onChange={(e) => setGithubProfile(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="https://github.com/your-profile"
-              />
-            </div>
-          </section>
-
           {/* Work Experience */}
           <section className="mb-6">
             <h3 className="text-xl font-semibold mb-4">Work Experience</h3>
@@ -350,7 +279,6 @@ const CompleteProfile: React.FC = () => {
                     Remove
                   </Button>
                 </div>
-                {/* Job Title */}
                 <div className="mb-2">
                   <label className="block text-gray-700">Job Title</label>
                   <input
@@ -362,20 +290,17 @@ const CompleteProfile: React.FC = () => {
                     className="w-full border border-gray-300 rounded p-2"
                   />
                 </div>
-                {/* Company Name */}
                 <div className="mb-2">
-                  <label className="block text-gray-700">Company Name</label>
+                  <label className="block text-gray-700">Company</label>
                   <input
                     type="text"
-                    value={experience.companyName}
+                    value={experience.company}
                     onChange={(e) =>
-                      updateWorkExperience(index, "companyName", e.target.value)
+                      updateWorkExperience(index, "company", e.target.value)
                     }
                     className="w-full border border-gray-300 rounded p-2"
                   />
                 </div>
-                {/* Other fields... */}
-                {/* Start Date and End Date */}
                 <div className="flex space-x-2">
                   <div className="w-1/2">
                     <label className="block text-gray-700">Start Date</label>
@@ -387,6 +312,9 @@ const CompleteProfile: React.FC = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2"
                     />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Please enter the start date manually for consistancy.
+                    </p>
                   </div>
                   <div className="w-1/2">
                     <label className="block text-gray-700">End Date</label>
@@ -398,9 +326,11 @@ const CompleteProfile: React.FC = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2"
                     />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Please enter the end date manually for consistancy.
+                    </p>
                   </div>
                 </div>
-                {/* Responsibilities */}
                 <div className="mb-2">
                   <label className="block text-gray-700">
                     Responsibilities
@@ -424,80 +354,93 @@ const CompleteProfile: React.FC = () => {
               Add Work Experience
             </Button>
           </section>
-
-          {/* Education */}
-          {/* Similar implementation as Work Experience */}
-
-          {/* Skills */}
+          {/* Education Section */}
           <section className="mb-6">
-            <h3 className="text-xl font-semibold mb-4">Skills</h3>
-            {/* Technical Skills */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Technical Skills</label>
-              <textarea
-                value={technicalSkills}
-                onChange={(e) => setTechnicalSkills(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="List your technical skills separated by commas"
-                rows={3}
-              />
-            </div>
-            {/* Soft Skills */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Soft Skills</label>
-              <textarea
-                value={softSkills}
-                onChange={(e) => setSoftSkills(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="List your soft skills separated by commas"
-                rows={3}
-              />
-            </div>
+            <h3 className="text-xl font-semibold mb-4">Education</h3>
+            {educations.map((education, index) => (
+              <div key={index} className="mb-4 border p-4 rounded">
+                <div className="flex justify-between">
+                  <h4 className="text-lg font-medium mb-2">
+                    Education {index + 1}
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => removeEducation(index)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+                <div className="mb-2">
+                  <label className="block text-gray-700">Degree</label>
+                  <input
+                    type="text"
+                    value={education.degree}
+                    onChange={(e) =>
+                      updateEducation(index, "degree", e.target.value)
+                    }
+                    className="w-full border border-gray-300 rounded p-2"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="block text-gray-700">Institution</label>
+                  <input
+                    type="text"
+                    value={education.institution}
+                    onChange={(e) =>
+                      updateEducation(index, "institution", e.target.value)
+                    }
+                    className="w-full border border-gray-300 rounded p-2"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <div className="w-1/2">
+                    <label className="block text-gray-700">Start Date</label>
+                    <input
+                      type="month"
+                      value={education.startDate}
+                      onChange={(e) =>
+                        updateEducation(index, "startDate", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2"
+                    />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Please enter the start date manually for consistancy.
+                    </p>
+                  </div>
+                  <div className="w-1/2">
+                    <label className="block text-gray-700">End Date</label>
+                    <input
+                      type="month"
+                      value={education.endDate}
+                      onChange={(e) =>
+                        updateEducation(index, "endDate", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2"
+                    />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Please enter the end date manually for consistancy.
+                    </p>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <label className="block text-gray-700">Location</label>
+                  <input
+                    type="text"
+                    value={education.location}
+                    onChange={(e) =>
+                      updateEducation(index, "location", e.target.value)
+                    }
+                    className="w-full border border-gray-300 rounded p-2"
+                  />
+                </div>
+              </div>
+            ))}
+            <Button type="button" onClick={addEducation}>
+              Add Education
+            </Button>
           </section>
-
-          {/* Projects */}
-          {/* Similar implementation as Work Experience */}
-
-          {/* Additional Information */}
-          <section className="mb-6">
-            <h3 className="text-xl font-semibold mb-4">
-              Additional Information
-            </h3>
-            {/* Languages */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Languages</label>
-              <textarea
-                value={languages}
-                onChange={(e) => setLanguages(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="List the languages you know separated by commas"
-                rows={2}
-              />
-            </div>
-            {/* Certifications */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Certifications</label>
-              <textarea
-                value={certifications}
-                onChange={(e) => setCertifications(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="List your certifications separated by commas"
-                rows={2}
-              />
-            </div>
-            {/* Awards */}
-            <div className="mb-4">
-              <label className="block text-gray-700">Awards and Honors</label>
-              <textarea
-                value={awards}
-                onChange={(e) => setAwards(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2"
-                placeholder="List any awards or honors you've received"
-                rows={2}
-              />
-            </div>
-          </section>
-
+          {/* Submit Button */}
           <Button type="submit" className="w-full" variant="default">
             Submit
           </Button>
