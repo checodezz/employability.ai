@@ -42,11 +42,12 @@ const CompleteProfile: React.FC = () => {
   const [certifications, setCertifications] = useState<string>("");
   const [awards, setAwards] = useState<string>("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [skills, setSkills] = useState<string>("");
+  const [skills, setSkills] = useState<string>(""); // Single field for both technical and soft skills
 
   // Update form fields when parsedData changes
   useEffect(() => {
     if (parsedData) {
+      // Use parsed data to pre-fill form fields
       setFullName(parsedData.name || fullName);
       setPhoneNumber(parsedData.contact?.phone || phoneNumber);
       setAddress({
@@ -60,14 +61,18 @@ const CompleteProfile: React.FC = () => {
       setLinkedinProfile(parsedData.contact?.linkedin || linkedinProfile);
       setWorkExperiences(parsedData.experience || workExperiences);
       setEducations(parsedData.education || educations);
-      setTechnicalSkills(parsedData.skills?.join(", ") || technicalSkills);
+      setTechnicalSkills(parsedData.skills?.join(", ") || technicalSkills); // Assuming skills are in an array
       setProjects(parsedData.projects || projects);
-      setEmail(parsedData.contact?.email || email);
+
+      if (parsedData.contact?.email) {
+        setEmail(parsedData.contact.email); // Dynamically set email from parsed data
+      }
     }
   }, [parsedData]);
 
   useEffect(() => {
     if (parsedData && parsedData.skills) {
+      // Join array of skills into a comma-separated string
       setSkills(parsedData.skills.join(", "));
     }
   }, [parsedData]);
@@ -76,6 +81,8 @@ const CompleteProfile: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Dispatch the uploadResume action
       dispatch(uploadResume({ file, userId: user?.id || "" }));
     }
   };
@@ -83,6 +90,7 @@ const CompleteProfile: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prepare profile data for submission
     const profileData = {
       personalInformation: {
         fullName,
@@ -125,12 +133,15 @@ const CompleteProfile: React.FC = () => {
         throw new Error(data.error || "Failed to submit profile");
       }
 
+      // Handle successful submission
+      console.log("Profile data submitted:", data);
       navigate("/next-step");
     } catch (error) {
       console.error("Error submitting profile data:", error);
     }
   };
 
+  // Functions for handling dynamic sections (Work Experience, Education, etc.)
   const addWorkExperience = () => {
     setWorkExperiences([
       ...workExperiences,
@@ -262,7 +273,18 @@ const CompleteProfile: React.FC = () => {
               />
             </div>
           </section>
-          {/* Work Experience */}
+          {/* Skills section */}
+          <div className="mb-4">
+            <label className="block text-gray-700">Skills</label>
+            <input
+              type="text"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)} // Update state when user types
+              placeholder="e.g. JavaScript, React, Communication"
+              className="w-full border border-gray-300 rounded p-2"
+            />
+          </div>
+          {/* Work Experience Section */}
           <section className="mb-6">
             <h3 className="text-xl font-semibold mb-4">Work Experience</h3>
             {workExperiences.map((experience, index) => (
@@ -312,9 +334,6 @@ const CompleteProfile: React.FC = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2"
                     />
-                    <p className="text-gray-500 text-xs mt-1">
-                      Please enter the start date manually for consistancy.
-                    </p>
                   </div>
                   <div className="w-1/2">
                     <label className="block text-gray-700">End Date</label>
@@ -326,9 +345,6 @@ const CompleteProfile: React.FC = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2"
                     />
-                    <p className="text-gray-500 text-xs mt-1">
-                      Please enter the end date manually for consistancy.
-                    </p>
                   </div>
                 </div>
                 <div className="mb-2">
@@ -404,9 +420,6 @@ const CompleteProfile: React.FC = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2"
                     />
-                    <p className="text-gray-500 text-xs mt-1">
-                      Please enter the start date manually for consistancy.
-                    </p>
                   </div>
                   <div className="w-1/2">
                     <label className="block text-gray-700">End Date</label>
@@ -418,9 +431,6 @@ const CompleteProfile: React.FC = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2"
                     />
-                    <p className="text-gray-500 text-xs mt-1">
-                      Please enter the end date manually for consistancy.
-                    </p>
                   </div>
                 </div>
                 <div className="mb-2">
