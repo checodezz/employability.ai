@@ -3,12 +3,11 @@ import axios from "axios";
 
 const BASE_URL = "http://localhost:3000/api";
 
-// Types for the state and actions
 interface User {
   id: string;
   name: string;
   email: string;
-  [key: string]: any; // Extendable for additional user fields
+  [key: string]: any;
 }
 
 interface AuthState {
@@ -18,7 +17,6 @@ interface AuthState {
   error: string | null;
 }
 
-// Initial state
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
@@ -26,7 +24,6 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Types for async thunks
 interface RegisterUserPayload {
   email: string;
   password: string;
@@ -38,7 +35,6 @@ interface LoginUserPayload {
   password: string;
 }
 
-// Async thunk for registering a user
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (userData: RegisterUserPayload, { rejectWithValue }) => {
@@ -46,7 +42,7 @@ export const registerUser = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/register`, userData, {
         withCredentials: true,
       });
-      return response.data; // Expecting { user: { ... }, message: "..." }
+      return response.data; 
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Registration failed. Please try again.";
@@ -55,7 +51,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Async thunk for logging in a user
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (loginData: LoginUserPayload, { rejectWithValue }) => {
@@ -63,7 +58,7 @@ export const loginUser = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/login`, loginData, {
         withCredentials: true,
       });
-      return response.data; // Expecting { user: { ... }, message: "..." }
+      return response.data; 
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Login failed. Please try again.";

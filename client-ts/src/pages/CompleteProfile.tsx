@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { uploadResume } from "@/store/slices/resumeSlice"; // Assuming you have this action
 import { AppDispatch } from "@/store/store";
 
+
 const CompleteProfile: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -118,26 +119,8 @@ const CompleteProfile: React.FC = () => {
       },
     };
 
-    try {
-      const response = await fetch("/api/complete-profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profileData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to submit profile");
-      }
-
-      // Handle successful submission
-      console.log("Profile data submitted:", data);
-      navigate("/next-step");
-    } catch (error) {
-      console.error("Error submitting profile data:", error);
+    if (user?.id) {
+      dispatch(createProfile({ userId: user.id, profileData }));
     }
   };
 
