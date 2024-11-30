@@ -76,7 +76,7 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
         </div>
       ))}
       {/* Use ShadCN Button for "Add Project" */}
-      <Button onClick={addProject} variant="default" className="w-full">
+      <Button onClick={addProject} variant="default">
         Add Project
       </Button>
     </div>

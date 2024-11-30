@@ -44,7 +44,7 @@ const AwardsSection: React.FC<AwardsSectionProps> = ({ awards, setAwards }) => {
           </Button>
         </div>
       ))}
-      <Button onClick={addAward} variant="default" className="w-full">
+      <Button onClick={addAward} variant="default" >
         Add Award
       </Button>
     </div>
