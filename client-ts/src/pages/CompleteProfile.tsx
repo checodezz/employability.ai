@@ -9,6 +9,8 @@ import ResumeUpload from "@/components/ResumeUpload";
 import TextInput from "@/components/TextInput";
 import WorkExperience from "@/components/WorkExperience";
 import Education from "@/components/Education";
+import ProjectSection from "../components/ProjectSection";
+import AwardsSection from "../components/AwardSection";
 
 const CompleteProfile: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -44,9 +46,8 @@ const CompleteProfile: React.FC = () => {
   const [projects, setProjects] = useState<Array<any>>([]);
   const [languages, setLanguages] = useState<string>("");
   const [certifications, setCertifications] = useState<string>("");
-  const [awards, setAwards] = useState<string>("");
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [skills, setSkills] = useState<string>(""); // Single field for both technical and soft skills
+  const [awards, setAwards] = useState<string[]>([]);
+  const [skills, setSkills] = useState<string>("");
 
   // Update form fields when parsedData changes
   useEffect(() => {
@@ -248,6 +249,8 @@ const CompleteProfile: React.FC = () => {
             onRemove={removeEducation}
             onAdd={addEducation}
           />
+          <ProjectSection projects={projects} setProjects={setProjects} />
+          <AwardsSection awards={awards} setAwards={setAwards} />
           {/* Submit Button */}
           <Button type="submit" className="w-full" variant="default">
             Submit
