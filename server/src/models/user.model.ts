@@ -38,7 +38,7 @@ const userSchema: Schema<IUser> = new Schema(
     },
     role: {
       type: String,
-      enum: ["candidate", "employer", "recruiter"],
+      enum: ["candidate", "employer"],
       default: "candidate",
     },
     resume: {

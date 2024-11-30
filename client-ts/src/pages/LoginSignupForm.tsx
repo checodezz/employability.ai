@@ -230,21 +230,6 @@ const LoginSignupForm: React.FC = () => {
                       </select>
                     </div>
 
-                    {role === "candidate" && (
-                      <div className="mb-4">
-                        <label className="block text-gray-700">
-                          Resume (URL)
-                        </label>
-                        <input
-                          type="url"
-                          value={resume}
-                          onChange={(e) => setResume(e.target.value)}
-                          className="w-full border border-gray-300 rounded p-2"
-                          placeholder="e.g., https://example.com/resume.pdf"
-                        />
-                      </div>
-                    )}
-
                     {(role === "employer" || role === "recruiter") && (
                       <>
                         <div className="mb-4">
