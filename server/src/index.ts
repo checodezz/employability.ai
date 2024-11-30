@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import "./config/passport"; // Import Passport configuration
 import otpRoutes from "./routes/otpRoutes";
 import uploadResumeRoutes from "./routes/uploadResume";
+import profileRoutes from "./routes/createProfileRoute";
 
 config();
 
@@ -51,6 +52,7 @@ app.use(passport.session());
 app.use("/api", authRoutes);
 app.use("/api", uploadResumeRoutes);
 app.use("/api/otp", otpRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to the internet");

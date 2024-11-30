@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
-import { RootState } from "../store"; // Adjust to your store setup
+// import { RootState } from "../store"; // Adjust to your store setup
+import { RootState } from "@/store/store";
 
 interface SignupData {
   email: string;
