@@ -227,7 +227,6 @@ const LoginSignupForm: React.FC = () => {
                       >
                         <option value="candidate">Candidate</option>
                         <option value="employer">Employer</option>
-                        <option value="recruiter">Recruiter</option>
                       </select>
                     </div>
 
