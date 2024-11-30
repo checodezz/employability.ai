@@ -42,7 +42,7 @@ export const registerUser = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/register`, userData, {
         withCredentials: true,
       });
-      return response.data; 
+      return response.data;
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Registration failed. Please try again.";
@@ -58,7 +58,7 @@ export const loginUser = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/login`, loginData, {
         withCredentials: true,
       });
-      return response.data; 
+      return response.data;
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Login failed. Please try again.";

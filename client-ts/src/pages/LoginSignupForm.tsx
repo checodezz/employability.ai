@@ -205,7 +205,6 @@ const LoginSignupForm: React.FC = () => {
                   />
                 </div>
 
-                {/* Signup-Specific Fields */}
                 {isSignup && (
                   <>
                     <div className="mb-4">
