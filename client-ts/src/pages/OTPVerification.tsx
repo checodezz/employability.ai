@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store"; // Assuming the store setup
 
 const OTPVerification: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState<string>("+91");
@@ -9,14 +11,62 @@ const OTPVerification: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const navigate = useNavigate();
 
-  const handleSendOTP = () => {};
+  // Get the user state from the store to determine if profile is completed
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
-  const handleVerifyOTP = () => {};
+  useEffect(() => {
+    // If the user is authenticated but their profile is already complete, redirect them to the dashboard
+    if (isAuthenticated && user?.isProfileCompleted) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  const handleSendOTP = async () => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      // Simulate OTP sending
+      setVerificationId("dummyVerificationId"); // Fake verification ID for demo
+      setSuccessMessage("OTP sent successfully!");
+    } catch (error) {
+      setErrorMessage("Failed to send OTP. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      // Simulate OTP verification
+      setSuccessMessage("Phone number verified successfully!");
+
+      // Assuming verification is successful, navigate to complete profile
+      navigate("/complete-profile");
+    } catch (error) {
+      setErrorMessage("Invalid OTP. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSkipForNow = () => {
-    navigate("/complete-profile");
+    // If the user skips OTP, navigate to /complete-profile or /dashboard depending on profile status
+    if (user?.isProfileCompleted) {
+      // navigate("/dashboard"); // Redirect to dashboard if profile is already completed
+    } else {
+      navigate("/complete-profile"); // Otherwise, navigate to profile completion page
+    }
   };
 
   return (
@@ -82,6 +132,7 @@ const OTPVerification: React.FC = () => {
           <p className="text-green-500 text-center mt-4">{successMessage}</p>
         )}
 
+        {/* Skip for now button to proceed without OTP */}
         <Button
           onClick={handleSkipForNow}
           className="w-full mt-4"

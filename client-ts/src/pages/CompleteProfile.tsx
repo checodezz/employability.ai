@@ -46,8 +46,8 @@ const CompleteProfile: React.FC = () => {
   const [projects, setProjects] = useState<Array<any>>([]);
   const [languages, setLanguages] = useState<string>("");
   const [certifications, setCertifications] = useState<string>("");
-  const [awards, setAwards] = useState<string[]>([]);
-  const [skills, setSkills] = useState<string>("");
+  const [awards, setAwards] = useState<string[]>([]); // Initialize as an empty array
+  const [skills, setSkills] = useState<string>(""); // Single field for both technical and soft skills
 
   // Update form fields when parsedData changes
   useEffect(() => {

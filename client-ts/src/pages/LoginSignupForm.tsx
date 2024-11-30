@@ -1,5 +1,3 @@
-// src/components/LoginSignupForm.tsx
-
 import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -18,7 +16,6 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
-// import { RootState } from "../store"; // Adjust to your store setup
 import { RootState } from "@/store/store";
 
 interface SignupData {
@@ -48,13 +45,9 @@ const LoginSignupForm: React.FC = () => {
   const [companyWebsite, setCompanyWebsite] = useState<string>("");
 
   useEffect(() => {
-    // Fetch the authenticated user's data when the component mounts
-    // dispatch(fetchUser());
-  }, [dispatch]);
-
-  useEffect(() => {
+    // If already authenticated, redirect to the complete profile page
     if (authState.isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/verify-phone");
     }
   }, [authState.isAuthenticated, navigate]);
 
@@ -110,23 +103,6 @@ const LoginSignupForm: React.FC = () => {
 
     // Redirect to OAuth route
     window.location.href = redirectUrl;
-
-    // After OAuth login, check if the user needs phone verification
-    try {
-      const response = await fetch(`${backendUrl}/api/auth/me`, {
-        credentials: "include", // Ensure cookies are included
-      });
-
-      const user = await response.json();
-
-      if (!user.isPhoneVerified) {
-        navigate("/verify-phone"); // Redirect to phone verification
-      } else {
-        navigate("/dashboard"); // Redirect to dashboard
-      }
-    } catch (error) {
-      console.error("OAuth login failed:", error);
-    }
   };
 
   if (authState.status === "loading") {

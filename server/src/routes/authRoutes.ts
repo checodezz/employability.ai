@@ -26,6 +26,14 @@ router.post("/test", (req: Request, res: Response) => {
   res.json({ message: "Test route is working!" });
 });
 
+router.get("/auth/status", (req: Request, res: Response) => {
+  if (req.isAuthenticated()) {
+    res.status(200).json({ isAuthenticated: true, user: req.user });
+  } else {
+    res.status(401).json({ isAuthenticated: false });
+  }
+});
+
 router.post(
   "/register",
   async (
@@ -157,13 +165,13 @@ router.get(
 
 // Initiate GitHub OAuth authentication
 router.get(
-  "/auth/github",
+  "/auth/github/callback",
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
 // Handle GitHub OAuth callback
 router.get(
-  "/auth/github/callback",
+  "/auth/github/",
   passport.authenticate("github", {
     failureRedirect: "/login",
     failureMessage: true,

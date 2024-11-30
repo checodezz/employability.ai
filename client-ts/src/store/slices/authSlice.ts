@@ -72,10 +72,15 @@ export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/profile`, {
-        withCredentials: true,
+      const response = await axios.get(`${BASE_URL}/auth/status`, {
+        withCredentials: true, // Ensure cookies are sent with the request
       });
-      return response.data.user; // Expecting { user: { ... } }
+
+      if (response.status === 200) {
+        console.log(response.data.user);
+        return response.data.user; // Expecting { user: { ... } }
+      }
+      return rejectWithValue("Not authenticated");
     } catch (err: any) {
       return rejectWithValue("Not authenticated");
     }
