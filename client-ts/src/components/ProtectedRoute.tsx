@@ -1,40 +1,40 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store/store"; // Adjust the import based on your store setup
+import { RootState } from "@/store/store";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  redirectPath?: string; // Optional redirect path (default is "/")
+  redirectPath?: string; // Default redirect path (e.g., login)
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   redirectPath = "/",
 }) => {
-  // Get user authentication, phone verification, and profile completion state from Redux store
+  const location = useLocation();
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth
   );
 
+  console.log("ProtectedRoute Debug - isAuthenticated:", isAuthenticated);
+  console.log("ProtectedRoute Debug - user:", user);
+  console.log("ProtectedRoute Debug - current location:", location.pathname);
+
+  // If the user is not authenticated, redirect to login or specified redirectPath
   if (!isAuthenticated) {
-    // If not authenticated, redirect to login page
-    return <Navigate to={redirectPath} />;
+    return <Navigate to={redirectPath} state={{ from: location }} />;
   }
 
-  // Check if phone is verified
-  if (isAuthenticated && !user?.isPhoneVerified) {
-    // If phone is not verified, redirect to the verify-phone page
-    return <Navigate to="/verify-phone" />;
+  // If profile is not completed, redirect to /complete-profile
+  if (isAuthenticated && !user?.isProfileCompleted) {
+    if (location.pathname !== "/complete-profile") {
+      return <Navigate to="/complete-profile" state={{ from: location }} />;
+    }
   }
 
-  // Check if profile is completed
-  if (isAuthenticated && user?.isPhoneVerified && !user?.isProfileCompleted) {
-    // If profile is not completed, redirect to complete-profile page
-    return <Navigate to="/complete-profile" />;
-  }
-
-  return <>{children}</>; // If authenticated, phone verified, and profile completed, render the protected route
+  // If all checks pass, render the children
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

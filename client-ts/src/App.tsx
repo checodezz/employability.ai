@@ -3,7 +3,6 @@ import { Routes, Route } from "react-router-dom";
 import LoginSignupForm from "./pages/LoginSignupForm.tsx";
 import OTPVerification from "./pages/OTPVerification";
 import CompleteProfile from "./pages/CompleteProfile.tsx";
-import Dashboard from "./pages/Dashboard.tsx"; // Assuming you have a Dashboard page
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "./store/slices/authSlice.ts";
@@ -20,18 +19,16 @@ const App: React.FC = () => {
 
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/" element={<LoginSignupForm />} />
-
-      {/* Routes for phone verification and profile completion do not require ProtectedRoute */}
       <Route path="/verify-phone" element={<OTPVerification />} />
-      <Route path="/complete-profile" element={<CompleteProfile />} />
 
-      {/* Protected Route: Dashboard is protected and requires phone verification and profile completion */}
+      {/* Protected Routes */}
       <Route
-        path="/dashboard"
+        path="/complete-profile"
         element={
           <ProtectedRoute>
-            {/* <Dashboard /> */}
+            <CompleteProfile />
           </ProtectedRoute>
         }
       />
