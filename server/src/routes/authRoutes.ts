@@ -165,13 +165,13 @@ router.get(
 
 // Initiate GitHub OAuth authentication
 router.get(
-  "/auth/github/callback",
+  "/auth/github",
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
 // Handle GitHub OAuth callback
 router.get(
-  "/auth/github/",
+  "/auth/github/callback",
   passport.authenticate("github", {
     failureRedirect: "/login",
     failureMessage: true,
