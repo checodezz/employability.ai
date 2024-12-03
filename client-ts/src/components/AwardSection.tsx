@@ -26,25 +26,26 @@ const AwardsSection: React.FC<AwardsSectionProps> = ({ awards, setAwards }) => {
   return (
     <div className="mb-6">
       <h3 className="text-xl font-semibold mb-4">Awards</h3>
-      {Array.isArray(awards) && awards.map((award, index) => (
-        <div key={index} className="mb-4 p-4 border border-gray-300 rounded">
-          <TextInput
-            label={`Award ${index + 1}`}
-            value={award}
-            onChange={(e) => handleAwardChange(index, e.target.value)}
-            placeholder="e.g., Employee of the Year, Best Innovator"
-          />
-          <Button
-            onClick={() => removeAward(index)}
-            variant="destructive"
-            size="sm"
-            className="mt-2"
-          >
-            Remove Award
-          </Button>
-        </div>
-      ))}
-      <Button onClick={addAward} variant="default" >
+      {Array.isArray(awards) &&
+        awards.map((award, index) => (
+          <div key={index} className="mb-4 p-4 border border-gray-300 rounded">
+            <TextInput
+              label={`Award ${index + 1}`}
+              value={award}
+              onChange={(e) => handleAwardChange(index, e.target.value)}
+              placeholder="e.g., Employee of the Year, Best Innovator"
+            />
+            <Button
+              onClick={() => removeAward(index)}
+              variant="destructive"
+              size="sm"
+              className="mt-2"
+            >
+              Remove Award
+            </Button>
+          </div>
+        ))}
+      <Button onClick={addAward} variant="default">
         Add Award
       </Button>
     </div>
