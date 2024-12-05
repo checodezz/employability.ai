@@ -10,6 +10,8 @@ interface Address {
 }
 
 interface Contact {
+  github: string;
+  portfolio: string;
   email: string;
   phone: string;
   linkedin: string;

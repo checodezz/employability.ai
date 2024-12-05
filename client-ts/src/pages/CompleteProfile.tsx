@@ -1,5 +1,3 @@
-// src/pages/CompleteProfile.tsx
-
 import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -8,14 +6,20 @@ import { uploadResume } from "@/store/slices/resumeSlice"; // Ensure createProfi
 import { AppDispatch } from "@/store/store";
 import { Button } from "@/components/ui/button";
 import ResumeUpload from "@/components/ResumeUpload";
-import TextInput from "@/components/TextInput";
 import WorkExperience from "@/components/WorkExperience";
 import Education from "@/components/Education";
 import ProjectSection from "@/components/ProjectSection";
 import AwardsSection from "@/components/AwardSection";
 import SkillsSection from "@/components/SkillsSection";
+import { createProfile } from "@/store/slices/profileSlice";
+import { skillsList } from "@/utils/skillsList";
+import LocationSelector from "@/components/LocationSection";
+import PersonalInfoSection from "@/components/PersonalInfoSection";
+import ProfessionalProfilesSection from "@/components/ProfessionalProfileSection";
+import LanguagesSection from "@/components/LanguagesSection";
+import CertificationsSection from "@/components/CertificationsSection";
 
-interface Skill {
+export interface Skill {
   name: string;
   rating: number;
 }
@@ -30,6 +34,9 @@ const CompleteProfile: React.FC = () => {
     (state: RootState) => state.resume
   );
 
+  // Safely access skills from parsedData, checking if parsedData is available
+  const parsedDataSkills = parsedData?.skills || [];
+
   // Personal Information
   const [fullName, setFullName] = useState<string>(user?.name || "");
   const [email, setEmail] = useState<string>(user?.email || "");
@@ -43,67 +50,97 @@ const CompleteProfile: React.FC = () => {
     country: "",
   });
 
-  // Other fields (professional profiles, work experiences, etc.)
   const [linkedinProfile, setLinkedinProfile] = useState<string>("");
   const [portfolioWebsite, setPortfolioWebsite] = useState<string>("");
   const [githubProfile, setGithubProfile] = useState<string>("");
   const [workExperiences, setWorkExperiences] = useState<Array<any>>([]);
   const [educations, setEducations] = useState<Array<any>>([]);
   const [projects, setProjects] = useState<Array<any>>([]);
-  const [awards, setAwards] = useState<string[]>([]); // Initialize as an empty array
-  const [skills, setSkills] = useState<Skill[]>([]); // Array of skills with ratings
+  const [awards, setAwards] = useState<string[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [languages, setLanguages] = useState<string>("");
-  const [certifications, setCertifications] = useState<string[]>([]); // Assuming certifications can also be dynamic
+  const [certifications, setCertifications] = useState<string[]>([]);
 
-  // Prefill data on response
+  const [formErrors, setFormErrors] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    dateOfBirth: "",
+  });
+
   useEffect(() => {
     if (parsedData) {
-      setFullName(parsedData.name || fullName);
-      setEmail(parsedData.contact?.email || email);
-      setPhoneNumber(parsedData.contact?.phone || phoneNumber);
+      setFullName(parsedData.name || "");
+      setEmail(parsedData.contact?.email || "");
+      setPhoneNumber(parsedData.contact?.phone || "");
+      setDateOfBirth(parsedData.contact?.dob || "");
       setAddress({
-        street: parsedData.contact?.address?.street || address.street,
-        city: parsedData.contact?.address?.city || address.city,
-        state: parsedData.contact?.address?.state || address.state,
-        postalCode:
-          parsedData.contact?.address?.postalCode || address.postalCode,
-        country: parsedData.contact?.address?.country || address.country,
+        street: parsedData.contact?.address?.street || "",
+        city: parsedData.contact?.address?.city || "",
+        state: parsedData.contact?.address?.state || "",
+        postalCode: parsedData.contact?.address?.postalCode || "",
+        country: parsedData.contact?.address?.country || "",
       });
-      setLinkedinProfile(parsedData.contact?.linkedin || linkedinProfile);
-      setWorkExperiences(parsedData.experience || workExperiences);
-      setEducations(parsedData.education || educations);
-      setProjects(parsedData.projects || projects);
+      setLinkedinProfile(parsedData.contact?.linkedin || "");
+      setPortfolioWebsite(parsedData.contact?.portfolio || "");
+      setGithubProfile(parsedData.contact?.github || "");
+      setWorkExperiences(parsedData.experience || []);
+      setEducations(parsedData.education || []);
+      setProjects(parsedData.projects || []);
       setAwards(parsedData.awards || []);
       setCertifications(parsedData.certifications || []);
 
       // Convert skills array of strings to array of Skill objects with default rating
       if (parsedData.skills && Array.isArray(parsedData.skills)) {
+        const filteredSkills = parsedData.skills.filter((skill: string) =>
+          skillsList.includes(skill)
+        );
         setSkills(
-          parsedData.skills.map((skill: string) => ({ name: skill, rating: 3 }))
+          filteredSkills.map((skill: string) => ({ name: skill, rating: 3 }))
         );
       }
 
-      // Handle languages if they are dynamic
       if (parsedData.languages && Array.isArray(parsedData.languages)) {
         setLanguages(parsedData.languages.join(", "));
       }
     }
   }, [parsedData]);
 
+  console.log(parsedData);
+
   // Handle file change for resume upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-
-      // Dispatch the uploadResume action
-      dispatch(uploadResume({ file, userId: user?.id || "" }));
+      dispatch(uploadResume({ file, userId: user?._id || "" }));
     }
+  };
+
+  // Validate the form before submission
+  const validateForm = () => {
+    const errors: any = {};
+    if (!fullName) {
+      errors.fullName = "Full Name is required";
+    }
+    if (!email) {
+      errors.email = "Email is required";
+    }
+    if (!phoneNumber) {
+      errors.phoneNumber = "Phone Number is required";
+    }
+    if (!dateOfBirth) {
+      errors.dateOfBirth = "Date of Birth is required";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0; // If no errors, return true
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    // Prepare profile data for submission
+    // Validate form before submitting
+    if (!validateForm()) {
+      return; // Stop submission if validation fails
+    }
     const profileData = {
       personalInformation: {
         fullName,
@@ -128,9 +165,11 @@ const CompleteProfile: React.FC = () => {
       },
     };
 
-    if (user?.id) {
-      // dispatch(createProfile({ userId: user.id, profileData }));
+    if (user) {
+      await dispatch(createProfile({ userId: user._id, profileData })); // Replace with actual dispatch
     }
+    navigate("/profile");
+    console.log("Profile Data Submitted:", profileData);
   };
 
   // Functions for handling dynamic sections (Work Experience, Education, etc.)
@@ -215,96 +254,66 @@ const CompleteProfile: React.FC = () => {
             error={error}
             onFileChange={handleFileChange}
           />
-
-          {/* Personal Information */}
-          <TextInput
-            label="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
+          <PersonalInfoSection
+            fullName={fullName}
+            email={email}
+            phoneNumber={phoneNumber}
+            dateOfBirth={dateOfBirth}
+            formErrors={formErrors}
+            onFullNameChange={(e) => setFullName(e.target.value)}
+            onEmailChange={(e) => setEmail(e.target.value)}
+            onPhoneNumberChange={(e) => setPhoneNumber(e.target.value)}
+            onDateOfBirthChange={(e) => setDateOfBirth(e.target.value)}
           />
-          <TextInput
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+          <ProfessionalProfilesSection
+            linkedinProfile={linkedinProfile}
+            portfolioWebsite={portfolioWebsite}
+            githubProfile={githubProfile}
+            onLinkedinProfileChange={setLinkedinProfile}
+            onPortfolioWebsiteChange={setPortfolioWebsite}
+            onGithubProfileChange={setGithubProfile}
           />
-          <TextInput
-            label="Phone Number"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+          <LocationSelector />
+          <br />
+          <SkillsSection
+            skills={skills}
+            setSkills={setSkills}
+            skillsList={skillsList}
+            parsedDataSkills={parsedDataSkills}
           />
-          <TextInput
-            label="Date of Birth"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            type="date"
-          />
-
-          {/* Professional Profiles */}
-          <TextInput
-            label="LinkedIn Profile"
-            value={linkedinProfile}
-            onChange={(e) => setLinkedinProfile(e.target.value)}
-            placeholder="https://linkedin.com/in/yourprofile"
-          />
-          <TextInput
-            label="Portfolio Website"
-            value={portfolioWebsite}
-            onChange={(e) => setPortfolioWebsite(e.target.value)}
-            placeholder="https://yourportfolio.com"
-          />
-          <TextInput
-            label="GitHub Profile"
-            value={githubProfile}
-            onChange={(e) => setGithubProfile(e.target.value)}
-            placeholder="https://github.com/yourprofile"
-          />
-
-          {/* Skills with Ratings */}
-          <SkillsSection skills={skills} setSkills={setSkills} />
-
-          {/* Work Experience */}
           <WorkExperience
             workExperiences={workExperiences}
             onUpdate={updateWorkExperience}
             onRemove={removeWorkExperience}
             onAdd={addWorkExperience}
           />
-
-          {/* Education */}
           <Education
             educations={educations}
             onUpdate={updateEducation}
             onRemove={removeEducation}
             onAdd={addEducation}
           />
-
-          {/* Projects */}
           <ProjectSection projects={projects} setProjects={setProjects} />
-
-          {/* Awards */}
           <AwardsSection awards={awards} setAwards={setAwards} />
-
-          {/* Additional Information */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-4">
               Additional Information
             </h3>
-            <TextInput
+            {/* <TextInput
               label="Languages"
               value={languages}
               onChange={(e) => setLanguages(e.target.value)}
               placeholder="e.g., English, Hindi"
+            /> */}
+            <LanguagesSection
+              languages={languages}
+              onLanguagesChange={setLanguages}
             />
-            <TextInput
-              label="Certifications"
-              value={certifications.join(", ")}
-              onChange={(e) => setCertifications(e.target.value.split(", "))}
-              placeholder="e.g., AWS Certified Solutions Architect, PMP"
+            <CertificationsSection
+              certifications={certifications}
+              onCertificationsChange={setCertifications}
             />
           </div>
-
-          {/* Submit Button */}
           <Button type="submit" className="w-full" variant="default">
             Submit
           </Button>
@@ -313,5 +322,4 @@ const CompleteProfile: React.FC = () => {
     </div>
   );
 };
-
 export default CompleteProfile;

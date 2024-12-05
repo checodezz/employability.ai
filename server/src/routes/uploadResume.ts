@@ -8,6 +8,7 @@ import fs from "fs";
 import { parseResumeWithOpenAI } from "../utils/parseResumeStructured"; // Import the structured parsing function
 import User from "../models/user.model"; // Import User model to update user data
 import { parseResume } from "../utils/parseResume";
+import isAuthenticated from "../middleware/authMiddleware";
 
 const router = express.Router();
 
@@ -18,15 +19,17 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Authentication check middleware
-router.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(req.isAuthenticated());
+// router.use((req: Request, res: Response, next: NextFunction) => {
+//   console.log(req.isAuthenticated());
 
-  if (req.isAuthenticated()) {
-    // Adjust based on your authentication setup
-    return next();
-  }
-  res.status(401).json({ error: "Unauthorized" });
-});
+//   if (req.isAuthenticated()) {
+//     // Adjust based on your authentication setup
+//     return next();
+//   }
+//   res.status(401).json({ error: "Unauthorized" });
+// });
+
+router.use(isAuthenticated);
 
 // POST /api/upload-resume
 router.post(
@@ -51,7 +54,7 @@ router.post(
       const filePath = path.resolve(file.path);
 
       const parsedText = await parseResume(filePath);
-    //   console.log(parsedText);
+      //   console.log(parsedText);
 
       // Step 2: Parse the resume using OpenAI's Structured Outputs
       const parsedData = await parseResumeWithOpenAI(parsedText.fullText);

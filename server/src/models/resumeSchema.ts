@@ -7,6 +7,8 @@ export const ResumeSchema = z.object({
     phone: z.string(),
     linkedin: z.string().optional(),
     address: z.string().optional(),
+    github: z.string().optional(), // GitHub profile URL
+    portfolio: z.string().optional(), // Portfolio URL
   }),
   summary: z.string().optional(),
   skills: z.array(z.string()),
@@ -67,6 +69,6 @@ export const ResumeSchema = z.object({
     )
     .optional(),
   interests: z.array(z.string()).optional(),
-});
+}); 
 
 export type Resume = z.infer<typeof ResumeSchema> | null;

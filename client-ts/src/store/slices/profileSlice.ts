@@ -59,7 +59,8 @@ export const createProfile = createAsyncThunk(
         {
           userId: profileData.userId,
           profileData: profileData.profileData,
-        }
+        },
+        { withCredentials: true }
       );
       console.log(response.data);
       return response.data.profile; // Return the created profile

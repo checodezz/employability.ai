@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 // Define TypeScript interface for the profile
 interface IAddress {
@@ -12,35 +12,35 @@ interface IAddress {
 interface IWorkExperience {
   jobTitle?: string;
   company?: string;
+  location?: string; // Add location to match data
   startDate?: string;
   endDate?: string;
-  responsibilities?: string;
+  responsibilities?: string[]; // Changed to an array of strings
 }
 
 interface IEducation {
   degree?: string;
   institution?: string;
-  startDate?: string;
-  endDate?: string;
+  graduationYear?: number; // Changed startDate/endDate to graduationYear for education
   location?: string;
 }
 
 interface ISkills {
-  technicalSkills?: string;
-  softSkills?: string;
+  name: string;
+  rating: number; // Match the skill structure with rating
 }
 
 interface IProject {
   name?: string;
   description?: string;
-  startDate?: string;
-  endDate?: string;
+  technologies?: string[]; // Array of technologies for projects
+  link?: string;
 }
 
 interface IAdditionalInformation {
   languages?: string;
-  certifications?: string;
-  awards?: string;
+  certifications?: string[]; // Changed to an array of strings
+  awards?: string[]; // Changed to an array of strings
 }
 
 export interface IProfile extends Document {
@@ -59,7 +59,7 @@ export interface IProfile extends Document {
   };
   workExperiences: IWorkExperience[];
   educations: IEducation[];
-  skills: ISkills;
+  skills: ISkills[]; // Array of skills, not just one object
   projects: IProject[];
   additionalInformation: IAdditionalInformation;
   createdAt?: Date;
@@ -69,7 +69,12 @@ export interface IProfile extends Document {
 // Define the schema for the profile document
 const ProfileSchema: Schema<IProfile> = new Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
     personalInformation: {
       fullName: { type: String },
       email: { type: String },
@@ -92,42 +97,44 @@ const ProfileSchema: Schema<IProfile> = new Schema(
       {
         jobTitle: { type: String },
         company: { type: String },
+        location: { type: String },
         startDate: { type: String },
         endDate: { type: String },
-        responsibilities: { type: String },
+        responsibilities: { type: [String] }, // Array of responsibilities
       },
     ],
     educations: [
       {
         degree: { type: String },
         institution: { type: String },
-        startDate: { type: String },
-        endDate: { type: String },
+        graduationYear: { type: Number }, // Changed to graduationYear
         location: { type: String },
       },
     ],
-    skills: {
-      technicalSkills: { type: String },
-      softSkills: { type: String },
-    },
+    skills: [
+      {
+        name: { type: String },
+        rating: { type: Number },
+      },
+    ],
     projects: [
       {
         name: { type: String },
         description: { type: String },
-        startDate: { type: String },
-        endDate: { type: String },
+        technologies: { type: [String] }, // Array of technologies
+        link: { type: String },
       },
     ],
     additionalInformation: {
       languages: { type: String },
-      certifications: { type: String },
-      awards: { type: String },
+      certifications: { type: [String] }, // Changed to array of strings
+      awards: { type: [String] }, // Changed to array of strings
     },
   },
   { timestamps: true }
 );
 
 // Create and export the model
-const Profile = mongoose.model<IProfile>('Profile', ProfileSchema);
+const Profile = mongoose.model<IProfile>("Profile", ProfileSchema);
 
 export default Profile;
