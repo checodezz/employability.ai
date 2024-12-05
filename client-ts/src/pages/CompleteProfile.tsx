@@ -2,7 +2,7 @@ import React, { useState, useEffect, FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { useNavigate } from "react-router-dom";
-import { uploadResume } from "@/store/slices/resumeSlice"; // Ensure createProfile is imported
+import { uploadResume } from "@/store/slices/resumeSlice";
 import { AppDispatch } from "@/store/store";
 import { Button } from "@/components/ui/button";
 import ResumeUpload from "@/components/ResumeUpload";
@@ -10,7 +10,6 @@ import WorkExperience from "@/components/WorkExperience";
 import Education from "@/components/Education";
 import ProjectSection from "@/components/ProjectSection";
 import AwardsSection from "@/components/AwardSection";
-import SkillsSection from "@/components/SkillsSection";
 import { createProfile } from "@/store/slices/profileSlice";
 import { skillsList } from "@/utils/skillsList";
 import LocationSelector from "@/components/LocationSection";
@@ -18,11 +17,15 @@ import PersonalInfoSection from "@/components/PersonalInfoSection";
 import ProfessionalProfilesSection from "@/components/ProfessionalProfileSection";
 import LanguagesSection from "@/components/LanguagesSection";
 import CertificationsSection from "@/components/CertificationsSection";
+import Select from "react-select";
+import SkillSelector from "@/components/SkillSelector";
 
-export interface Skill {
+interface Skill {
   name: string;
   rating: number;
 }
+
+console.log(skillsList);
 
 const CompleteProfile: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -96,7 +99,7 @@ const CompleteProfile: React.FC = () => {
           skillsList.includes(skill)
         );
         setSkills(
-          filteredSkills.map((skill: string) => ({ name: skill, rating: 3 }))
+          filteredSkills.map((skill: string) => ({ name: skill, rating: 1 }))
         );
       }
 
@@ -242,6 +245,18 @@ const CompleteProfile: React.FC = () => {
     });
   };
 
+  const handleSelectSkill = (selectedOption: any) => {
+    const skill = selectedOption?.value; // Get the selected skill name
+    if (skill && !skills.some((s) => s.name === skill)) {
+      setSkills([...skills, { name: skill, rating: 1 }]); // Add new skill with a default rating
+    }
+  };
+
+  const handleRemoveSkill = (index: number) => {
+    const updatedSkills = skills.filter((_, i) => i !== index); // Remove the skill at the specified index
+    setSkills(updatedSkills); // Update the state with the new skills list
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-3xl p-6 shadow-lg rounded bg-white">
@@ -275,12 +290,8 @@ const CompleteProfile: React.FC = () => {
           />
           <LocationSelector />
           <br />
-          <SkillsSection
-            skills={skills}
-            setSkills={setSkills}
-            skillsList={skillsList}
-            parsedDataSkills={parsedDataSkills}
-          />
+
+          <SkillSelector skills={skills} setSkills={setSkills} />
           <WorkExperience
             workExperiences={workExperiences}
             onUpdate={updateWorkExperience}
@@ -299,12 +310,6 @@ const CompleteProfile: React.FC = () => {
             <h3 className="text-xl font-semibold mb-4">
               Additional Information
             </h3>
-            {/* <TextInput
-              label="Languages"
-              value={languages}
-              onChange={(e) => setLanguages(e.target.value)}
-              placeholder="e.g., English, Hindi"
-            /> */}
             <LanguagesSection
               languages={languages}
               onLanguagesChange={setLanguages}
