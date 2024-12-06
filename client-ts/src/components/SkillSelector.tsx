@@ -1,6 +1,8 @@
 import Select from "react-select";
 import { skillsList } from "@/utils/skillsList";
 
+console.log(skillsList);
+
 // Assuming skillsList is an array of predefined skills
 interface Skill {
   name: string;
