@@ -132,21 +132,11 @@ router.post("/logout", (req: Request, res: Response) => {
   });
 });
 
-/**
- * OAuth Routes
- */
-
-/**
- * Google OAuth Routes
- */
-
-// Initiate Google OAuth authentication
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// Handle Google OAuth callback
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
@@ -154,22 +144,15 @@ router.get(
     failureMessage: true, // Enable failure messages
   }),
   (req: Request, res: Response) => {
-    // Successful authentication, redirect to frontend dashboard
-    res.redirect("http://localhost:5173/dashboard"); // Update to your frontend dashboard route
+    res.redirect("http://localhost:5173/dashboard");
   }
 );
 
-/**
- * GitHub OAuth Routes
- */
-
-// Initiate GitHub OAuth authentication
 router.get(
   "/auth/github",
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
-// Handle GitHub OAuth callback
 router.get(
   "/auth/github/callback",
   passport.authenticate("github", {
@@ -181,17 +164,11 @@ router.get(
   }
 );
 
-/**
- * LinkedIn OAuth Routes
- */
-
-// Initiate LinkedIn OAuth authentication
 router.get(
   "/auth/linkedin",
   passport.authenticate("linkedin", { state: "true" })
 );
 
-// Handle LinkedIn OAuth callback
 router.get(
   "/auth/linkedin/callback",
   passport.authenticate("linkedin", {

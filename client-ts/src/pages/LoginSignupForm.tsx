@@ -6,28 +6,16 @@ import {
   fetchUser,
   logoutUser,
 } from "../store/slices/authSlice";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
 import { RootState } from "@/store/store";
+import TextInput from "@/components/TextInput";
+import Toggle from "@/components/ui/Toggle";
 
 interface SignupData {
   email: string;
   password: string;
   name: string;
   role: string;
-  resume?: string;
-  company?: {
-    name: string;
-    website: string;
-  };
 }
 
 const LoginSignupForm: React.FC = () => {
@@ -35,17 +23,15 @@ const LoginSignupForm: React.FC = () => {
   const navigate = useNavigate();
   const authState = useSelector((state: RootState) => state.auth);
 
-  const [isSignup, setIsSignup] = useState<boolean>(false);
+  const [isSignup, setIsSignup] = useState<boolean>(true);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [name, setName] = useState<string>("");
-  const [role, setRole] = useState<string>("candidate");
-  const [resume, setResume] = useState<string>("");
-  const [companyName, setCompanyName] = useState<string>("");
-  const [companyWebsite, setCompanyWebsite] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [isWhatsAppEnabled, setIsWhatsAppEnabled] = useState(false);
 
   useEffect(() => {
-    // If already authenticated, redirect to the complete profile page
     if (authState.isAuthenticated) {
       navigate("/verify-phone");
     }
@@ -54,251 +40,189 @@ const LoginSignupForm: React.FC = () => {
   const handleCustomSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
     const signupData: SignupData = {
       email,
       password,
       name,
-      role,
+      role: "candidate",
     };
 
-    if (role === "candidate") {
-      signupData.resume = resume;
-    } else if (role === "employer" || role === "recruiter") {
-      signupData.company = {
-        name: companyName,
-        website: companyWebsite,
-      };
-    }
-
     try {
-      // Trigger signup API call
       await dispatch(registerUser(signupData)).unwrap();
-
-      // Redirect to OTP verification after signup
       navigate("/verify-phone");
     } catch (error) {
       console.error("Signup failed:", error);
     }
   };
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const loginData = {
-      email,
-      password,
-    };
-    dispatch(loginUser(loginData));
-  };
-
-  const handleOAuthLogin = async (provider: string) => {
+  const handleOAuthLogin = (provider: string) => {
     const providerRoutes: { [key: string]: string } = {
       google: "auth/google",
       github: "auth/github",
       linkedin: "auth/linkedin",
+      apple: "auth/apple",
     };
 
-    const backendUrl = "http://localhost:3000"; // Backend URL
+    const backendUrl = "http://localhost:3000";
     const redirectUrl = `${backendUrl}/api/${providerRoutes[provider]}`;
-
-    // Redirect to OAuth route
     window.location.href = redirectUrl;
   };
 
-  if (authState.status === "loading") {
-    return (
-      <div
-        className="flex justify-center items-center min-h-screen bg-gray-100"
-        aria-busy="true"
-      >
-        <h2 className="text-xl font-semibold text-gray-700">
-          {isSignup ? "Signing you up..." : "Signing you in..."}
-        </h2>
-      </div>
-    );
-  }
+  const handleToggle = () => {
+    setIsWhatsAppEnabled((prev) => !prev);
+  };
 
   return (
-    <div
-      className="flex justify-center items-center min-h-screen bg-gray-100"
-      role="main"
-      aria-labelledby="page-title"
-    >
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle
-            id="page-title"
-            className="text-center text-2xl font-bold text-gray-800"
+    <section className="grid grid-cols-2 h-screen">
+      {/* Left Image Section */}
+      <div className="bg-[#F5F6FA] flex items-center justify-center">
+        <div
+          className="w-[832px] h-[800px] bg-no-repeat bg-cover "
+          style={{ backgroundImage: "url('./src/assets/carousel.png')" }}
+        ></div>
+      </div>
+
+      {/* Right Form Section */}
+      <div className="flex items-center justify-center">
+        <div className="w-[400px]">
+          {/* Header */}
+          <h1
+            className="mb-6 text-[32px] font-semibold leading-[28px] text-[#1A1A1A] text-center"
+            style={{
+              fontFamily: '"Work Sans", sans-serif',
+              fontFeatureSettings: "'liga' off, 'clig' off",
+              letterSpacing: "-0.7px",
+            }}
           >
-            {isSignup ? "Create an Account" : "Sign in to Employability.ai"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {authState.user ? (
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Hello, {authState.user.name || authState.user.email}
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Email: {authState.user.email}
-              </p>
-              <Button
-                onClick={() => dispatch(logoutUser())}
-                variant="outline"
-                className="mt-4"
-              >
-                Logout
-              </Button>
+            {isSignup ? "Create Your Account" : "Sign in to Employability.ai"}
+          </h1>
+
+          {/* Social Login */}
+          <div className="flex justify-center gap-4 mb-8">
+            <button
+              onClick={() => handleOAuthLogin("google")}
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300"
+            >
+              <img src="./src/assets/Search.png" alt="Google" />
+            </button>
+            <button
+              onClick={() => handleOAuthLogin("linkedin")}
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300"
+            >
+              <img src="./src/assets/Linkedin.png" alt="LinkedIn" />
+            </button>
+            <button
+              onClick={() => handleOAuthLogin("apple")}
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300"
+            >
+              <img src="./src/assets/Apple logo.png" alt="Apple" />
+            </button>
+            <button
+              onClick={() => handleOAuthLogin("github")}
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300"
+            >
+              <img src="./src/assets/Github.png" alt="GitHub" />
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-8">
+            <span className="flex-1 h-px bg-gray-300"></span>
+            <span className="text-sm text-gray-500">Or register with</span>
+            <span className="flex-1 h-px bg-gray-300"></span>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleCustomSignup}>
+            <div className="flex flex-col gap-4 mb-6">
+              {isSignup && (
+                <TextInput
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  required
+                  icon="./src/assets/user.png"
+                />
+              )}
+
+              <TextInput
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                icon="./src/assets/mail.png"
+              />
+
+              {isSignup && (
+                <TextInput
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Phone Number"
+                  required
+                  icon="./src/assets/India.png"
+                />
+              )}
+
+              <TextInput
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                icon="./src/assets/password.png"
+              />
+
+              {isSignup && (
+                <TextInput
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                  required
+                  icon="./src/assets/password.png"
+                />
+              )}
             </div>
-          ) : (
-            <div>
-              <form onSubmit={isSignup ? handleCustomSignup : handleLogin}>
-                {authState.error && (
-                  <p className="text-red-500 text-center mb-4">
-                    {authState.error}
-                  </p>
-                )}
 
-                {/* Common Fields */}
-                <div className="mb-4">
-                  <label className="block text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border border-gray-300 rounded p-2"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-gray-700">Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border border-gray-300 rounded p-2"
-                    required
-                  />
-                </div>
-
-                {isSignup && (
-                  <>
-                    <div className="mb-4">
-                      <label className="block text-gray-700">Name</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full border border-gray-300 rounded p-2"
-                        required
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-gray-700">I am a</label>
-                      <select
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        className="w-full border border-gray-300 rounded p-2"
-                      >
-                        <option value="candidate">Candidate</option>
-                        <option value="employer">Employer</option>
-                      </select>
-                    </div>
-
-                    {(role === "employer" || role === "recruiter") && (
-                      <>
-                        <div className="mb-4">
-                          <label className="block text-gray-700">
-                            Company Name
-                          </label>
-                          <input
-                            type="text"
-                            value={companyName}
-                            onChange={(e) => setCompanyName(e.target.value)}
-                            className="w-full border border-gray-300 rounded p-2"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label className="block text-gray-700">
-                            Company Website
-                          </label>
-                          <input
-                            type="url"
-                            value={companyWebsite}
-                            onChange={(e) => setCompanyWebsite(e.target.value)}
-                            className="w-full border border-gray-300 rounded p-2"
-                            placeholder="e.g., https://example.com"
-                          />
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-
-                <Button type="submit" className="w-full" variant="default">
-                  {isSignup ? "Signup" : "Login"}
-                </Button>
-              </form>
-
-              {/* OAuth Buttons */}
-              <div className="mt-6 flex flex-col items-center">
-                <span className="text-gray-500 mb-2">Or continue with</span>
-                <div className="flex space-x-4">
-                  <Button
-                    onClick={() => handleOAuthLogin("google")}
-                    variant="outline"
-                    className="flex items-center"
-                  >
-                    <FaGoogle className="mr-2" /> Google
-                  </Button>
-                  <Button
-                    onClick={() => handleOAuthLogin("linkedin")}
-                    variant="outline"
-                    className="flex items-center"
-                  >
-                    <FaLinkedin className="mr-2" /> LinkedIn
-                  </Button>
-                  <Button
-                    onClick={() => handleOAuthLogin("github")}
-                    variant="outline"
-                    className="flex items-center"
-                  >
-                    <FaGithub className="mr-2" /> GitHub
-                  </Button>
-                </div>
-              </div>
-
-              <p className="text-center text-gray-500 mt-4">
-                {isSignup
-                  ? "Already have an account?"
-                  : "Don't have an account?"}{" "}
-                <button
-                  onClick={() => setIsSignup(!isSignup)}
-                  className="text-blue-600 underline"
-                >
-                  {isSignup ? "Login here" : "Sign up here"}
-                </button>
-              </p>
+            {/* Toggle */}
+            <div className="flex items-center gap-2 mb-6">
+              <Toggle
+                isChecked={isWhatsAppEnabled}
+                onToggle={handleToggle}
+                label="Get recruiter updates on WhatsApp"
+              />
             </div>
-          )}
-        </CardContent>
-        {!authState.user && (
-          <CardFooter className="text-center">
-            <p className="text-sm text-gray-500">
-              By signing up or logging in, you agree to our{" "}
-              <a href="/terms" className="text-blue-600 underline">
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a href="/privacy" className="text-blue-600 underline">
-                Privacy Policy
-              </a>
-              .
-            </p>
-          </CardFooter>
-        )}
-      </Card>
-    </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full bg-[#0AD472] text-white py-3 rounded-lg text-lg font-semibold"
+            >
+              {isSignup ? "Sign Up" : "Login"}
+            </button>
+          </form>
+
+          {/* Footer Links */}
+          <p className="text-center text-sm text-gray-500 mt-6">
+            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              onClick={() => setIsSignup(!isSignup)}
+              className="text-[#0AD472] underline"
+            >
+              {isSignup ? "Log in" : "Sign up"}
+            </button>
+          </p>
+        </div>
+      </div>
+    </section>
   );
 };
 
